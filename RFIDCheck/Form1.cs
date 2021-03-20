@@ -163,97 +163,9 @@ namespace RFIDCheck
             return builder.ToString();
         }
 
-        private void button3_Click(object sender, EventArgs e)
+
+        public void leggi_scheda()
         {
-            textBox1.Clear();
-            textBox3.Clear();
-            textBox4.Clear();
-            textBox2.Clear();
-            richTextBox1.Clear();
-
-            if (status == DL_STATUS.UFR_OK)
-            {
-                byte[] LWData = new byte[2048];
-                String LinAddr = "0";
-                String LWData_Str = "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-
-                ushort linear_address = 0;
-
-
-                try
-                {
-                    linear_address = ushort.Parse(LinAddr);
-
-                }
-                catch (System.FormatException)
-                {
-                    MessageBox.Show("Incorect start byte!");
-
-                }
-
-                ushort byte_written = 0;
-                LWData = ToByteArray(LWData_Str);
-                Int32 data_len = LWData_Str.Length / 2;
-
-                status = uFCoder.LinearWrite(LWData, linear_address, (ushort)data_len, ref byte_written, 0x60, 0);
-
-                textBox2.Text = uFCoder.status2str(status);
-                MessageBox.Show("Formattazione Eseguita!");
-
-            }
-            else
-            {
-                MessageBox.Show("Scheda non pronta!");
-            }
-        }
-
-        private void button2_Click(object sender, EventArgs e)
-        {
-            textBox1.Clear();
-            textBox3.Clear();
-            textBox2.Clear();
-
-            if (status == DL_STATUS.UFR_OK)
-            {
-                byte[] LWData = new byte[2048];
-                String LinAddr = "0";
-                String LWData_Str = AsciiToHex(textBox4.Text.ToString());
-
-                ushort linear_address = 0;
-
-
-                try
-                {
-                    linear_address = ushort.Parse(LinAddr);
-
-                }
-                catch (System.FormatException)
-                {
-                    MessageBox.Show("Incorect start byte!");
-
-                }
-
-                ushort byte_written = 0;
-                LWData = ToByteArray(LWData_Str);
-                Int32 data_len = LWData_Str.Length / 2;
-
-                status = uFCoder.LinearWrite(LWData, linear_address, (ushort)data_len, ref byte_written, 0x60, 0);
-
-                textBox2.Text = uFCoder.status2str(status);
-                MessageBox.Show("Lettura Eseguita!");
-
-            }
-            else
-            {
-                MessageBox.Show("Scheda non pronta!");
-            }
-        }
-
-
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            
             byte CardType = 0;
             byte[] Uid = new byte[10];
             byte UidSize = 0;
@@ -273,7 +185,7 @@ namespace RFIDCheck
             catch (System.FormatException)
             {
 
-                MessageBox.Show("Incorect start byte!");
+                MessageBox.Show("Byte di partenza sbagliato!");
                 textBox2.Clear();
             }
 
@@ -284,7 +196,7 @@ namespace RFIDCheck
             }
             catch (System.FormatException)
             {
-                MessageBox.Show("Incorect length!");
+                MessageBox.Show("Lunghezza sbagliata!");
                 textBox2.Clear();
             }
 
@@ -309,7 +221,7 @@ namespace RFIDCheck
                     byte[] LinearShow = new byte[data_len];
 
                     Array.Copy(LinearData, LinearShow, data_len);
-                    
+
                     richTextBox1.Text = BitConverter.ToString(LinearShow).Replace("-", ":");
                     textBox4.Text = ConvertHex(BitConverter.ToString(LinearShow).Replace("-", ""));
 
@@ -326,9 +238,115 @@ namespace RFIDCheck
                 textBox1.Clear();
                 textBox3.Clear();
                 textBox4.Clear();
+                richTextBox1.Clear();
 
             }
 
+
+        }
+
+        public void scrivi_scheda(String testo)
+        {
+            if (status == DL_STATUS.UFR_OK)
+            {
+                byte[] LWData = new byte[2048];
+                String LinAddr = "0";
+                String LWData_Str = AsciiToHex(testo);
+
+                ushort linear_address = 0;
+
+
+                try
+                {
+                    linear_address = ushort.Parse(LinAddr);
+
+                }
+                catch (System.FormatException)
+                {
+                    MessageBox.Show("Byte di partenza sbagliato!");
+
+                }
+
+                ushort byte_written = 0;
+                LWData = ToByteArray(LWData_Str);
+                Int32 data_len = LWData_Str.Length / 2;
+
+                status = uFCoder.LinearWrite(LWData, linear_address, (ushort)data_len, ref byte_written, 0x60, 0);
+
+                textBox2.Text = uFCoder.status2str(status);
+                MessageBox.Show("Scrittura Eseguita!");
+
+            }
+            else
+            {
+                MessageBox.Show("Scheda non pronta!");
+            }
+        }
+
+        public void format_scheda()
+        {
+            if (status == DL_STATUS.UFR_OK)
+            {
+                byte[] LWData = new byte[2048];
+                String LinAddr = "0";
+                String LWData_Str = "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+
+                ushort linear_address = 0;
+
+
+                try
+                {
+                    linear_address = ushort.Parse(LinAddr);
+
+                }
+                catch (System.FormatException)
+                {
+                    MessageBox.Show("Byte di partenza sbagliato!");
+
+                }
+
+                ushort byte_written = 0;
+                LWData = ToByteArray(LWData_Str);
+                Int32 data_len = LWData_Str.Length / 2;
+
+                status = uFCoder.LinearWrite(LWData, linear_address, (ushort)data_len, ref byte_written, 0x60, 0);
+
+                textBox2.Text = uFCoder.status2str(status);
+                MessageBox.Show("Formattazione Eseguita!");
+
+            }
+            else
+            {
+                MessageBox.Show("Scheda non pronta!");
+            }
+        }
+
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            textBox1.Clear();
+            textBox3.Clear();
+            textBox4.Clear();
+            textBox2.Clear();
+            richTextBox1.Clear();
+
+            format_scheda();
+          
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+           
+            scrivi_scheda(textBox4.Text.ToString());
+            leggi_scheda();
+        }
+
+
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+
+            leggi_scheda();
 
         }
 
