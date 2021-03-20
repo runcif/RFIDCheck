@@ -2,6 +2,7 @@
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using uFR;
 
@@ -411,7 +412,9 @@ namespace RFIDCheck
 
         private void button2_Click(object sender, EventArgs e)
         {
-            if (!String.IsNullOrEmpty(textBox5.Text.ToString()))
+            int count_scrivi = CountChars(textBox4.Text.ToString());
+            int count_psw = CountChars(textBox5.Text.ToString());
+            if (count_scrivi <= 30 && count_psw <= 30)
             {
                 scrivi_scheda(textBox4.Text.ToString(), textBox5.Text.ToString());
                 leggi_scheda(textBox5.Text.ToString());
@@ -419,22 +422,47 @@ namespace RFIDCheck
             }
             else
             {
-                MessageBox.Show("Devi inserire la password prima!");
+                MessageBox.Show("Non puoi superare i 30 caratteri!");
             }
+
+           
+        }
+
+        static int CountChars(string value)
+        {
+            int result = 0;
+            bool lastWasSpace = false;
+
+            foreach (char c in value)
+            {
+                if (char.IsWhiteSpace(c))
+                {
+                    // A.
+                    // Only count sequential spaces one time.
+                    if (lastWasSpace == false)
+                    {
+                        result++;
+                    }
+                    lastWasSpace = true;
+                }
+                else
+                {
+                    // B.
+                    // Count other characters every time.
+                    result++;
+                    lastWasSpace = false;
+                }
+            }
+            return result;
         }
 
 
 
         private void button1_Click(object sender, EventArgs e)
         {
-            if (!String.IsNullOrEmpty(textBox5.Text.ToString()))
-            {
-                leggi_scheda(textBox5.Text.ToString());
-            }
-            else
-            {
-                MessageBox.Show("Devi inserire la password prima!");
-            }
+            
+           leggi_scheda(textBox5.Text.ToString());
+            
         }
 
 
