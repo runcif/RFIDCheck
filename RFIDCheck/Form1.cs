@@ -331,7 +331,8 @@ namespace RFIDCheck
             richTextBox1.Clear();
 
             format_scheda();
-          
+            leggi_scheda();
+
         }
 
         private void button2_Click(object sender, EventArgs e)
