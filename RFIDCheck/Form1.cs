@@ -3,6 +3,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Windows.Forms;
 using uFR;
 
@@ -19,6 +20,7 @@ namespace RFIDCheck
         public Form1()
         {
             InitializeComponent();
+            leggi_scheda("");
         }
         String GetDlTypeName(byte dl_type_code)
         {
