@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Security.Cryptography;
 using System.Text;
 using System.Windows.Forms;
 using uFR;
@@ -10,6 +12,8 @@ namespace RFIDCheck
     {
         DL_STATUS status = DL_STATUS.UFR_READER_PORT_NOT_OPENED;
 
+        private byte[] IV = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+        private int BlockSize = 128;
 
         public Form1()
         {
@@ -163,8 +167,65 @@ namespace RFIDCheck
             return builder.ToString();
         }
 
+        public string Encrypt(String textToEncrypt,String password)
+        {
+            try
+            {
+                byte[] bytes = Encoding.Unicode.GetBytes(textToEncrypt);
+                //Encrypt
+                SymmetricAlgorithm crypt = Aes.Create();
+                HashAlgorithm hash = MD5.Create();
+                crypt.BlockSize = BlockSize;
+                crypt.Key = hash.ComputeHash(Encoding.Unicode.GetBytes(password));
+                crypt.IV = IV;
 
-        public void leggi_scheda()
+                using (MemoryStream memoryStream = new MemoryStream())
+                {
+                    using (CryptoStream cryptoStream =
+                       new CryptoStream(memoryStream, crypt.CreateEncryptor(), CryptoStreamMode.Write))
+                    {
+                        cryptoStream.Write(bytes, 0, bytes.Length);
+                    }
+
+                    return Convert.ToBase64String(memoryStream.ToArray());
+                }
+            } 
+            catch (Exception e)
+            {            
+                MessageBox.Show("" + e);
+                return "0";
+            }
+           }
+
+        public string Decrypt(String textToDecrypt, String password)
+        {
+            try
+            {
+                byte[] bytes = Convert.FromBase64String(textToDecrypt);
+                SymmetricAlgorithm crypt = Aes.Create();
+                HashAlgorithm hash = MD5.Create();
+                crypt.Key = hash.ComputeHash(Encoding.Unicode.GetBytes(password));
+                crypt.IV = IV;
+
+                using (MemoryStream memoryStream = new MemoryStream(bytes))
+                {
+                    using (CryptoStream cryptoStream =
+                       new CryptoStream(memoryStream, crypt.CreateDecryptor(), CryptoStreamMode.Read))
+                    {
+                        byte[] decryptedBytes = new byte[bytes.Length];
+                        cryptoStream.Read(decryptedBytes, 0, decryptedBytes.Length);
+                        return Encoding.Unicode.GetString(decryptedBytes);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("" + e);
+                return "0";
+                
+            }
+        }
+        public void leggi_scheda(String password)
         {
             byte CardType = 0;
             byte[] Uid = new byte[10];
@@ -223,13 +284,24 @@ namespace RFIDCheck
                     Array.Copy(LinearData, LinearShow, data_len);
 
                     richTextBox1.Text = BitConverter.ToString(LinearShow).Replace("-", ":");
-                    textBox4.Text = ConvertHex(BitConverter.ToString(LinearShow).Replace("-", ""));
+                    richTextBox1.AppendText("\n\r"+ConvertHex(BitConverter.ToString(LinearShow).Replace("-", "")));
+                    String stringa_ottenuta = ConvertHex(BitConverter.ToString(LinearShow).Replace("-", ""));
 
+                    if (!String.IsNullOrEmpty(password))
+                    {
+                        textBox4.Text = Decrypt(stringa_ottenuta.Replace("\0", string.Empty), password);
+                    }
+                    else
+                    {
+                        textBox4.Text = stringa_ottenuta.Replace("\0", string.Empty);
+
+                    }
                 }
                 else
                 {
                     richTextBox1.Clear();
                 }
+                
 
             }
             else
@@ -245,13 +317,13 @@ namespace RFIDCheck
 
         }
 
-        public void scrivi_scheda(String testo)
+        public void scrivi_scheda(String testo, String password)
         {
             if (status == DL_STATUS.UFR_OK)
             {
                 byte[] LWData = new byte[2048];
                 String LinAddr = "0";
-                String LWData_Str = AsciiToHex(testo);
+                String LWData_Str = AsciiToHex(Encrypt(testo, password));
 
                 ushort linear_address = 0;
 
@@ -289,7 +361,7 @@ namespace RFIDCheck
             {
                 byte[] LWData = new byte[2048];
                 String LinAddr = "0";
-                String LWData_Str = "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+                String LWData_Str = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 
                 ushort linear_address = 0;
 
@@ -324,32 +396,49 @@ namespace RFIDCheck
 
         private void button3_Click(object sender, EventArgs e)
         {
+            
             textBox1.Clear();
             textBox3.Clear();
             textBox4.Clear();
             textBox2.Clear();
             richTextBox1.Clear();
 
+            leggi_scheda("");
             format_scheda();
-            leggi_scheda();
+            leggi_scheda("");
 
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
-           
-            scrivi_scheda(textBox4.Text.ToString());
-            leggi_scheda();
+            if (!String.IsNullOrEmpty(textBox5.Text.ToString()))
+            {
+                scrivi_scheda(textBox4.Text.ToString(), textBox5.Text.ToString());
+                leggi_scheda(textBox5.Text.ToString());
+                textBox4.Clear();
+            }
+            else
+            {
+                MessageBox.Show("Devi inserire la password prima!");
+            }
         }
 
 
 
         private void button1_Click(object sender, EventArgs e)
         {
-
-            leggi_scheda();
-
+            if (!String.IsNullOrEmpty(textBox5.Text.ToString()))
+            {
+                leggi_scheda(textBox5.Text.ToString());
+            }
+            else
+            {
+                MessageBox.Show("Devi inserire la password prima!");
+            }
         }
+
+
+
 
 
     }
